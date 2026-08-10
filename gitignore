@@ -1,0 +1,22 @@
+# Local .terraform directories
+**/.terraform/
+
+# .tfstate files (സെക്യൂരിറ്റി റിസ്ക് ഒഴിവാക്കാൻ)
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Exclude sensitive var files
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CLI local configuration records
+.terraformrc
+terraform.rc
