@@ -1,5 +1,7 @@
 #  Enterprise AWS Infrastructure as Code (IaC) & DevSecOps Portfolio
 
+![DevSecOps Security Audit](https://github.com/shafimuhammad5255-hue/terraform-aws-portfolio/actions/workflows/devsecops.yml/badge.svg)
+
 This repository contains production-grade **Terraform** infrastructure modules for AWS, hardened and audited against industry security standards using **Checkov** to achieve a **0 Failed Checks** benchmark.
 
 
@@ -49,12 +51,16 @@ This repository contains production-grade **Terraform** infrastructure modules f
 
 ##  DevSecOps & Security Hardening Highlights
 
-| Security Control,  Implementation Details 
+Security Control,  Implementation Details 
 
 | **Identity & Access (IAM)** : Removed `*` wildcards from KMS key policies; enforced strict service principals. 
+
 | **Compute (EC2)** : Enforced IMDSv2 (`http_tokens = required`), EBS volume encryption, and attached IAM profiles. 
-| **Storage (S3)** : Blocked all public access, enabled versioning, KMS encryption, and access logging across all buckets. 
+
+| **Storage (S3)** : Blocked all public access, enabled versioning, KMS encryption, and access logging across all buckets.
+
 | **Networking (VPC)** : Configured VPC Flow Logs and restricted default Security Group ingress/egress rules. 
+
 | **Supply Chain** : Locked third-party Terraform registry module sources using immutable Git commit SHAs. 
 
 
