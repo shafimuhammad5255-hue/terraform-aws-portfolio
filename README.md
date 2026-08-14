@@ -12,6 +12,8 @@ This repository contains production-grade **Terraform** infrastructure modules f
 - **Total Security Checks:** 200+
 - **Failed Checks:** **0** (100% Compliant)
 - **Frameworks Covered:** CIS AWS Benchmarks, AWS Foundational Security Best Practices
+- **Container Vulnerability Scanner:** Trivy (Aqua Security)
+- **Container Hardening:** Alpine-based lightweight base image, non-root user execution, 0 High/Critical CVEs.
 
 
 
@@ -46,6 +48,9 @@ This repository contains production-grade **Terraform** infrastructure modules f
 - Enterprise-wide logging and auditing setup via AWS CloudTrail.
 - **Custom KMS Key Policies:** Eliminated wildcard principals (`*`) to ensure strict Principle of Least Privilege.
 - Integrated CloudTrail logs with **CloudWatch Log Groups** and **SNS Topics** for real-time security alerting.
+
+### 8. `8-container-security` 
+- Hardened Flask microservice containerized with multi-stage/alpine security best practices and audited via Trivy.
 
 
 

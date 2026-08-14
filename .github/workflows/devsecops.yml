@@ -42,5 +42,5 @@ jobs:
         with:
           image-ref: 'vulnerable-app:latest'
           format: 'table'
-          exit-code: '0' # First time test run: let's see the vulnerabilities without failing immediately
+          exit-code: '1' # Pipeline fails if any HIGH or CRITICAL vulnerability is found
           severity: 'CRITICAL,HIGH'
