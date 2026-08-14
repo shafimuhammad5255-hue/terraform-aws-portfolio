@@ -1,13 +1,27 @@
-# Hardened and lightweight Python Alpine base image
+# Stage 1: Build stage
+FROM python:3.11-alpine AS builder
+
+WORKDIR /app
+
+# Install Flask into a isolated prefix
+RUN pip install --no-cache-dir --prefix=/install flask>=3.0.0
+
+# Stage 2: Final minimal runtime stage
 FROM python:3.11-alpine
 
 WORKDIR /app
 
-# Upgrade core build packaging tools to resolve CVEs, then install Flask
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir flask>=3.0.0
+# Copy only the installed dependencies from builder (excludes pip, setuptools, wheel artifacts)
+COPY --from=builder /install /usr/local
 
-# Create a non-root user for security best practices
+# Remove default pip/setuptools from runtime to eliminate package manager CVEs
+RUN rm -rf /usr/local/lib/python3.11/site-packages/setuptools* \
+           /usr/local/lib/python3.11/site-packages/pip* \
+           /usr/local/lib/python3.11/site-packages/wheel* \
+           /usr/local/lib/python3.11/site-packages/msgpack* \
+           /usr/local/lib/python3.11/site-packages/easy_install*
+
+# Create non-root user
 RUN adduser -D appuser && chown -R appuser /app
 USER appuser
 
