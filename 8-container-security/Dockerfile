@@ -3,8 +3,9 @@ FROM python:3.11-alpine
 
 WORKDIR /app
 
-# Upgrade pip and install latest secure Flask version
-RUN pip install --no-cache-dir flask>=3.0.0
+# Upgrade core build packaging tools to resolve CVEs, then install Flask
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir flask>=3.0.0
 
 # Create a non-root user for security best practices
 RUN adduser -D appuser && chown -R appuser /app
