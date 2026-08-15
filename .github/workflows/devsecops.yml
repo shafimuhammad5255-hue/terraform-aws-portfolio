@@ -2,8 +2,11 @@ name: DevSecOps IaC and Container Security Audit
 
 on: [push]
 
+# Explicitly set secure top-level read permissions 
+permissions: read-all
+
 jobs:
-  # 1. Existing Checkov Audit
+  # 1. Checkov IaC & Workflow Audit
   checkov-audit:
     runs-on: ubuntu-latest
     steps:
@@ -11,7 +14,7 @@ jobs:
       - name: Run Checkov
         uses: bridgecrewio/checkov-action@master
 
-  # 2. Existing Trivy Scan
+  # 2. Trivy Container Security Scan
   trivy-container-scan:
     runs-on: ubuntu-latest
     steps:
@@ -25,7 +28,7 @@ jobs:
           exit-code: '1'
           severity: 'HIGH,CRITICAL'
 
-  # 3. New: SAST Scan (Python Security)
+  # 3. Bandit SAST Python Scan
   bandit-scan:
     runs-on: ubuntu-latest
     steps:
@@ -33,9 +36,9 @@ jobs:
       - name: Install Bandit
         run: pip install bandit
       - name: Run Bandit Scan
-        run: bandit -r . -f txt -o bandit_results.txt || exit 0 # കോഡ് സെക്യൂരിറ്റി പരിശോധിക്കുന്നു
+        run: bandit -r . -f txt -o bandit_results.txt || exit 0
 
-  # 4. New: Secret Scanning
+  # 4. Gitleaks Secret Scanning
   gitleaks-scan:
     runs-on: ubuntu-latest
     steps:
