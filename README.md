@@ -68,7 +68,17 @@ Security Control,  Implementation Details
 
 | **Supply Chain** : Locked third-party Terraform registry module sources using immutable Git commit SHAs. 
 
+###  DevSecOps Pipeline & Automated Security Gates (Defense-in-Depth)
 
+The CI/CD pipeline enforces automated shift-left security across 4 critical layers:
+
+1. **IaC & Policy Compliance (Checkov):** Audits Terraform modules, GitHub Actions workflow permissions (`permissions: read-all`), and Dockerfile CIS standards.
+
+2. **Container Vulnerability Management (Trivy):** Scans Docker images with strict gatekeeping (`exit-code: 1` on HIGH/CRITICAL CVEs). Remediated 71+ legacy vulnerabilities down to 0 using a hardened Alpine base and multi-stage builds.
+
+3. **Static Application Security Testing - SAST (Bandit):** Automatically analyzes Python/Flask source code for security flaws and unsafe function executions.
+
+4. **Secret Scanning (Gitleaks):** Scans commit history and codebase to prevent accidental leaks of AWS credentials, API keys, or private certificates.
 
 ##  How to Audit & Run Scans Locally
 
