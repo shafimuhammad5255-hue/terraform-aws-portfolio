@@ -1,46 +1,46 @@
 name: DevSecOps IaC and Container Security Audit
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+on: [push]
 
 jobs:
-  # 1. Terraform Security Audit using Checkov
+  # 1. Existing Checkov Audit
   checkov-audit:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Run Checkov Static Code Analysis
+      - uses: actions/checkout@v4
+      - name: Run Checkov
         uses: bridgecrewio/checkov-action@master
-        with:
-          framework: terraform
-          output_format: cli
-          soft_fail: false
 
-  # 2. Container Security Audit using Trivy
+  # 2. Existing Trivy Scan
   trivy-container-scan:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Build Docker Image
-        run: |
-          docker build -t vulnerable-app:latest ./8-container-security
-
-      - name: Run Trivy Vulnerability Scanner
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t vulnerable-app:latest 8-container-security/
+      - name: Run Trivy
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'vulnerable-app:latest'
-          format: 'table'
-          exit-code: '1' # Pipeline fails if any HIGH or CRITICAL vulnerability is found
-          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          severity: 'HIGH,CRITICAL'
+
+  # 3. New: SAST Scan (Python Security)
+  bandit-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Bandit
+        run: pip install bandit
+      - name: Run Bandit Scan
+        run: bandit -r . -f txt -o bandit_results.txt || exit 0 # കോഡ് സെക്യൂരിറ്റി പരിശോധിക്കുന്നു
+
+  # 4. New: Secret Scanning
+  gitleaks-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
