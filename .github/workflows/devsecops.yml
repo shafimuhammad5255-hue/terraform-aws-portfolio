@@ -47,3 +47,18 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # 5. AWS Keyless OIDC Authentication (Uncomment when deploying to live AWS Account)
+  # aws-oidc-auth:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
+  #     - name: Configure AWS Credentials via OIDC
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/github-actions-devsecops-role
+  #         aws-region: us-east-1
+  #         audience: sts.amazonaws.com
+  #     - name: Verify Keyless Identity
+  #       run: aws sts get-caller-identity

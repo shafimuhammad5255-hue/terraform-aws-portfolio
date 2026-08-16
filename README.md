@@ -80,10 +80,25 @@ The CI/CD pipeline enforces automated shift-left security across 4 critical laye
 
 4. **Secret Scanning (Gitleaks):** Scans commit history and codebase to prevent accidental leaks of AWS credentials, API keys, or private certificates.
 
-##  How to Audit & Run Scans Locally
 
-To verify the security compliance of this repository:
+## How to Audit & Run Scans Locally
 
-1. **Install Checkov:**
+To verify the security compliance and Shift-Left hooks of this repository locally:
+
+1. **Install and Run Checkov (IaC Audit):**
    ```bash
    pip install checkov
+   checkov -d .
+
+2. **Install pre-commit Framework:**
+
+   ```bash
+   pip install pre-commit
+
+3. **Activate as Git Hooks:**
+   ```bash
+   pre-commit install
+
+4. **Test all hooks manually against the codebase:**
+   ```bash
+   pre-commit run --all-files
