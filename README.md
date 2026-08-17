@@ -1,6 +1,6 @@
 #  Enterprise AWS Infrastructure as Code (IaC) & DevSecOps Portfolio
 
-![DevSecOps Security Audit](https://github.com/shafimuhammad5255-hue/terraform-aws-portfolio/actions/workflows/devsecops.yml/badge.svg)
+[![DevSecOps IaC and Container Security Audit](https://github.com/shafimuhammad5255-hue/terraform-aws-portfolio/actions/workflows/devsecops.yml/badge.svg?branch=main)](https://github.com/shafimuhammad5255-hue/terraform-aws-portfolio/actions/workflows/devsecops.yml)
 
 This repository contains production-grade **Terraform** infrastructure modules for AWS, hardened and audited against industry security standards using **Checkov** to achieve a **0 Failed Checks** benchmark.
 
