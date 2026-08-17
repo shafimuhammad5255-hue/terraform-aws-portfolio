@@ -1,16 +1,17 @@
 # ==============================================================================
-# Purpose: Implements Pod Security Standards (PSS) & SecurityContext hardening.
+# Purpose: Implements Pod Security Standards (PSS) & Checkov-compliant Hardening.
 # Security Controls:
-#   1. runAsNonRoot: Enforces containers to run strictly as a non-root user (UID 10001).
-#   2. allowPrivilegeEscalation (false): Prevents child processes from gaining root privileges.
-#   3. readOnlyRootFilesystem (true): Locks root filesystem to prevent malware injection.
-#   4. capabilities.drop (ALL): Drops all standard Linux kernel capabilities.
+#   1. Custom isolated namespace ('production') avoiding 'default'.
+#   2. automountServiceAccountToken disabled to block credential leakage.
+#   3. Enforced SHA256 image digest pinning and ImagePullPolicy: Always.
+#   4. Configured Liveness and Readiness health probes.
+#   5. runAsNonRoot, readOnlyRootFilesystem, and dropped Linux capabilities.
 # ==============================================================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hardened-secure-app
-  namespace: default
+  namespace: production
   labels:
     app: secure-workload
 spec:
@@ -23,7 +24,7 @@ spec:
       labels:
         app: secure-workload
     spec:
-      # Pod Level Security Context
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001
@@ -34,11 +35,25 @@ spec:
 
       containers:
         - name: app-container
-          image: nginxinc/nginx-unprivileged:alpine
+          image: nginxinc/nginx-unprivileged:alpine@sha256:7b51b2a95c3a4d4ecb95420317e0892011b9a9d7003fffaad1e0b0e5faeb49e2
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
               
-          # Container Level Security Context
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
