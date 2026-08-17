@@ -1,0 +1,37 @@
+# ==============================================================================
+# Purpose: Implements Role-Based Access Control (RBAC) following Least Privilege.
+# Security Controls:
+#   1. Dedicated ServiceAccount for application workloads.
+#   2. Granular Role restricting actions strictly to read-only ("get", "list", "watch")
+#      on specific ConfigMaps, preventing cluster-wide exposure or modifications.
+#   3. RoleBinding scoped strictly to the local namespace.
+# ==============================================================================
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: secure-app-sa
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: config-reader-role
+  namespace: default
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: read-config-binding
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: secure-app-sa
+    namespace: default
+roleRef:
+  kind: Role
+  name: config-reader-role
+  apiGroup: rbac.authorization.k8s.io

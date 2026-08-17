@@ -1,0 +1,71 @@
+# ==============================================================================
+# Purpose: Implements Pod Security Standards (PSS) & SecurityContext hardening.
+# Security Controls:
+#   1. runAsNonRoot: Enforces containers to run strictly as a non-root user (UID 10001).
+#   2. allowPrivilegeEscalation (false): Prevents child processes from gaining root privileges.
+#   3. readOnlyRootFilesystem (true): Locks root filesystem to prevent malware injection.
+#   4. capabilities.drop (ALL): Drops all standard Linux kernel capabilities.
+# ==============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hardened-secure-app
+  namespace: default
+  labels:
+    app: secure-workload
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: secure-workload
+  template:
+    metadata:
+      labels:
+        app: secure-workload
+    spec:
+      # Pod Level Security Context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+
+      containers:
+        - name: app-container
+          image: nginxinc/nginx-unprivileged:alpine
+          ports:
+            - containerPort: 8080
+              
+          # Container Level Security Context
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+
+          volumeMounts:
+            - mountPath: /tmp
+              name: temp-volume
+            - mountPath: /var/cache/nginx
+              name: cache-volume
+            - mountPath: /var/run
+              name: run-volume
+
+      volumes:
+        - name: temp-volume
+          emptyDir: {}
+        - name: cache-volume
+          emptyDir: {}
+        - name: run-volume
+          emptyDir: {}

@@ -1,0 +1,49 @@
+# ==============================================================================
+# Purpose: Enforces Zero-Trust Network Isolation (Microsegmentation).
+# Security Controls:
+#   1. Default-Deny posture: Blocks all unauthorized lateral pod-to-pod traffic.
+#   2. Ingress Whitelist: Restricts incoming traffic exclusively to the internal API Gateway on port 8080.
+#   3. Egress Whitelist: Restricts outbound connections strictly to CoreDNS (UDP 53)
+#      and the internal Postgres database (TCP 5432).
+# ==============================================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: secure-workload-network-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: secure-workload
+  policyTypes:
+    - Ingress
+    - Egress
+
+  # Allow Ingress on port 8080 from internal API gateway only
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              role: api-gateway
+      ports:
+        - protocol: TCP
+          port: 8080
+
+  # Allow Egress only to DNS and Database
+  egress:
+    # 1. DNS Resolution (kube-system)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+    # 2. Database Connection
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgres-db
+      ports:
+        - protocol: TCP
+          port: 5432
