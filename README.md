@@ -52,7 +52,14 @@ This repository contains production-grade **Terraform** infrastructure modules f
 ### 8. `8-container-security` 
 - Hardened Flask microservice containerized with multi-stage/alpine security best practices and audited via Trivy.
 
+### 9. `9-github-OIDC-iam`
+- **Keyless CI/CD Authentication:** Eliminated long-lived static AWS access keys by integrating OpenID Connect (OIDC) with GitHub Actions.
+- **Audited Least Privilege:** Configured IAM trust relationships restricted strictly to the designated repository, branch, and role assumption.
 
+### 10. `10-kubernetes-security-hardening`
+- **Pod Security Standards (PSS):** Hardened deployment enforcing non-root users (`UID 10001`), read-only root filesystems, and dropping all standard Linux capabilities (`ALL`).
+- **Granular RBAC:** Implemented least-privilege `ServiceAccount`, `Role`, and `RoleBinding` scoped strictly to namespace ConfigMaps.
+- **Zero-Trust Microsegmentation:** Enforced `NetworkPolicy` with default-deny ingress/egress, isolating workload traffic exclusively to internal authorized endpoints.
 
 ##  DevSecOps & Security Hardening Highlights
 
