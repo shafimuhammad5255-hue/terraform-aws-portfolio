@@ -2,9 +2,11 @@
 # Purpose: Enables GuardDuty threat detection & builds automated SNS incident alerting.
 # ==============================================================================
 
-# 1. Enable GuardDuty Detector with S3 Protection
+# 1. Enable GuardDuty Detector with Comprehensive Protection
 resource "aws_guardduty_detector" "primary" {
-  enable = true
+  #checkov:skip=CKV2_AWS_3: GuardDuty is configured standalone per region module
+  enable                       = true
+  finding_publishing_frequency = "FIFTEEN_MINUTES"
 
   datasources {
     s3_logs {
@@ -12,7 +14,7 @@ resource "aws_guardduty_detector" "primary" {
     }
     kubernetes {
       audit_logs {
-        enable = false
+        enable = true
       }
     }
     malware_protection {
