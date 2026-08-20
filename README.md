@@ -61,6 +61,10 @@ This repository contains production-grade **Terraform** infrastructure modules f
 - **Granular RBAC:** Implemented least-privilege `ServiceAccount`, `Role`, and `RoleBinding` scoped strictly to namespace ConfigMaps.
 - **Zero-Trust Microsegmentation:** Enforced `NetworkPolicy` with default-deny ingress/egress, isolating workload traffic exclusively to internal authorized endpoints.
 
+### 11. `11-GuardDuty-threat-detection`
+- **Intelligent Continuous Threat Detection:** Configured Amazon GuardDuty with comprehensive monitoring across S3 data logs, EKS audit logs, and EBS malware protection.
+- **Event-Driven Incident Response:** Built an automated alerting pipeline using Amazon EventBridge to capture high-severity findings ($\ge 7.0$) and route instant notifications via a KMS-encrypted SNS topic.
+
 ##  DevSecOps & Security Hardening Highlights
 
 Security Control,  Implementation Details 
