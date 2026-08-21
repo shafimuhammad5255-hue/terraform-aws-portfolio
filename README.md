@@ -65,6 +65,11 @@ This repository contains production-grade **Terraform** infrastructure modules f
 - **Intelligent Continuous Threat Detection:** Configured Amazon GuardDuty with comprehensive monitoring across S3 data logs, EKS audit logs, and EBS malware protection.
 - **Event-Driven Incident Response:** Built an automated alerting pipeline using Amazon EventBridge to capture high-severity findings ($\ge 7.0$) and route instant notifications via a KMS-encrypted SNS topic.
 
+### 12. `12-ecr-image-scanning`
+- **Immutable Container Artifacts:** Enforced image tag immutability to prevent unauthorized overwrites, tampering, and image hijacking.
+- **Automated CVE Vulnerability Scanning:** Configured continuous scan-on-push policies for newly uploaded container layers.
+- **KMS Envelope Encryption & Lifecycle Management:** Secured registry at rest using customer-managed KMS keys with strictly scoped policies and automated pruning of stale untagged images.
+
 ##  DevSecOps & Security Hardening Highlights
 
 Security Control,  Implementation Details 
@@ -79,11 +84,35 @@ Security Control,  Implementation Details
 
 | **Supply Chain** : Locked third-party Terraform registry module sources using immutable Git commit SHAs. 
 
-###  DevSecOps Pipeline & Automated Security Gates (Defense-in-Depth)
+## DevSecOps & Security Hardening Highlights
+
+| Security Control | Implementation Details 
+
+| **Authentication & CI/CD (OIDC)** : Keyless GitHub Actions integration via OpenID Connect (OIDC); eliminated long-lived static AWS access keys. 
+
+| **Shift-Left Security** : Local pre-commit hooks configured for early feedback loop (Gitleaks, Bandit, Terraform validate, formatting).
+
+| **Identity & Access (IAM)** : Removed `*` wildcards from KMS key policies; enforced strict service principals and least privilege.
+
+| **Compute (EC2)** : Enforced IMDSv2 (`http_tokens = required`), EBS volume encryption, and attached IAM profiles.
+
+| **Storage (S3)** : Blocked all public access, enabled versioning, KMS encryption, and access logging across all buckets.
+
+| **Networking (VPC)** : Configured VPC Flow Logs and restricted default Security Group ingress/egress rules.
+
+| **Kubernetes (K8s)** : Enforced non-root execution (`UID 10001`), read-only root FS, dropped Linux capabilities, granular RBAC, and zero-trust NetworkPolicies.
+
+| **Threat Detection** : Automated GuardDuty continuous monitoring with EventBridge and KMS-encrypted SNS alerts for high-severity findings.
+
+| **Container Registry (ECR)** : Immutable container tags, automated scan-on-push, customer-managed KMS encryption, and lifecycle pruning.
+
+| **Supply Chain** : Locked third-party Terraform registry module sources using immutable Git commit SHAs.
+
+### DevSecOps Pipeline & Automated Security Gates (Defense-in-Depth)
 
 The CI/CD pipeline enforces automated shift-left security across 4 critical layers:
 
-1. **IaC & Policy Compliance (Checkov):** Audits Terraform modules, GitHub Actions workflow permissions (`permissions: read-all`), and Dockerfile CIS standards.
+1. **IaC & Policy Compliance (Checkov):** Audits Terraform modules, Kubernetes manifests, GitHub Actions workflow permissions (`permissions: read-all`), and Dockerfile CIS standards.
 
 2. **Container Vulnerability Management (Trivy):** Scans Docker images with strict gatekeeping (`exit-code: 1` on HIGH/CRITICAL CVEs). Remediated 71+ legacy vulnerabilities down to 0 using a hardened Alpine base and multi-stage builds.
 
@@ -91,25 +120,22 @@ The CI/CD pipeline enforces automated shift-left security across 4 critical laye
 
 4. **Secret Scanning (Gitleaks):** Scans commit history and codebase to prevent accidental leaks of AWS credentials, API keys, or private certificates.
 
-
 ## How to Audit & Run Scans Locally
 
-To verify the security compliance and Shift-Left hooks of this repository locally:
+Run these scans locally before pushing changes to remote:
 
-1. **Install and Run Checkov (IaC Audit):**
-   ```bash
-   pip install checkov
-   checkov -d .
+```bash
+# 1. Run All Shift-Left Pre-Commit Hooks
+pre-commit run --all-files
 
-2. **Install pre-commit Framework:**
+# 2. IaC & Kubernetes Manifest Scan
+checkov -d .
 
-   ```bash
-   pip install pre-commit
+# 3. Secret Scan
+gitleaks detect --source . -v
 
-3. **Activate as Git Hooks:**
-   ```bash
-   pre-commit install
+# 4. Static Python SAST Scan
+bandit -r 
 
-4. **Test all hooks manually against the codebase:**
-   ```bash
-   pre-commit run --all-files
+# 5. Container Filesystem Scan
+trivy fs .
