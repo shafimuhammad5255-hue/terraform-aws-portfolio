@@ -70,19 +70,6 @@ This repository contains production-grade **Terraform** infrastructure modules f
 - **Automated CVE Vulnerability Scanning:** Configured continuous scan-on-push policies for newly uploaded container layers.
 - **KMS Envelope Encryption & Lifecycle Management:** Secured registry at rest using customer-managed KMS keys with strictly scoped policies and automated pruning of stale untagged images.
 
-##  DevSecOps & Security Hardening Highlights
-
-Security Control,  Implementation Details 
-
-| **Identity & Access (IAM)** : Removed `*` wildcards from KMS key policies; enforced strict service principals. 
-
-| **Compute (EC2)** : Enforced IMDSv2 (`http_tokens = required`), EBS volume encryption, and attached IAM profiles. 
-
-| **Storage (S3)** : Blocked all public access, enabled versioning, KMS encryption, and access logging across all buckets.
-
-| **Networking (VPC)** : Configured VPC Flow Logs and restricted default Security Group ingress/egress rules. 
-
-| **Supply Chain** : Locked third-party Terraform registry module sources using immutable Git commit SHAs. 
 
 ## DevSecOps & Security Hardening Highlights
 
