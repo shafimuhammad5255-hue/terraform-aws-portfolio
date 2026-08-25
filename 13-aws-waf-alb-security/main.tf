@@ -102,3 +102,22 @@ resource "aws_wafv2_web_acl" "main" {
     Project     = "DevSecOps-Portfolio"
   }
 }
+
+# (WAF2 Logging Configuration)
+
+# WAF ലോഗുകൾ സ്റ്റോർ ചെയ്യാനുള്ള CloudWatch Log Group (പേര് 'aws-waf-logs-' എന്ന് തുടങ്ങണം)
+resource "aws_cloudwatch_log_group" "waf_log_group" {
+  name              = "aws-waf-logs-${var.environment}-alb"
+  retention_in_days = 30
+
+  tags = {
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
+# WAF-നെ CloudWatch Log Group-മായി ബന്ധിപ്പിക്കുന്ന Logging Configuration
+resource "aws_wafv2_web_acl_logging_configuration" "main" {
+  log_destination_configs = [aws_cloudwatch_log_group.waf_log_group.arn]
+  resource_arn            = aws_wafv2_web_acl.main.arn
+}
