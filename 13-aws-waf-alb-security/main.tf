@@ -12,6 +12,32 @@ provider "aws" {
   region = var.aws_region
 }
 
+# KMS Key for CloudWatch Logs Encryption 
+resource "aws_kms_key" "waf_log_key" {
+  description             = "KMS Key for WAF CloudWatch Log Group"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+
+  tags = {
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+    Project     = "DevSecOps-Portfolio"
+  }
+}
+
+# CloudWatch Log Group with 365 Days Retention & KMS 
+resource "aws_cloudwatch_log_group" "waf_log_group" {
+  name              = "aws-waf-logs-${var.environment}-alb"
+  retention_in_days = 365
+  kms_key_id        = aws_kms_key.waf_log_key.arn
+
+  tags = {
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
+#  WAF Web ACL
 resource "aws_wafv2_web_acl" "main" {
   name        = "${var.environment}-alb-waf"
   description = "Production WAF WebACL protecting ALB against OWASP Top 10"
@@ -103,20 +129,7 @@ resource "aws_wafv2_web_acl" "main" {
   }
 }
 
-# (WAF2 Logging Configuration)
-
-# WAF ലോഗുകൾ സ്റ്റോർ ചെയ്യാനുള്ള CloudWatch Log Group (പേര് 'aws-waf-logs-' എന്ന് തുടങ്ങണം)
-resource "aws_cloudwatch_log_group" "waf_log_group" {
-  name              = "aws-waf-logs-${var.environment}-alb"
-  retention_in_days = 30
-
-  tags = {
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
-}
-
-# WAF-നെ CloudWatch Log Group-മായി ബന്ധിപ്പിക്കുന്ന Logging Configuration
+# WAF Logging Configuration
 resource "aws_wafv2_web_acl_logging_configuration" "main" {
   log_destination_configs = [aws_cloudwatch_log_group.waf_log_group.arn]
   resource_arn            = aws_wafv2_web_acl.main.arn
