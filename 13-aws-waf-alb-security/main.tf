@@ -17,7 +17,14 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 # --- KMS Key Policy Document for CloudWatch Logs ---
+# ts:skip=CKV_AWS_111 Suppress wildcard action check for KMS root delegation
+# ts:skip=CKV_AWS_109 Suppress permissions management constraint for KMS root policy
+# ts:skip=CKV_AWS_356 Suppress wildcard resource constraint as KMS key policy requires '*' to avoid circular dependency
 data "aws_iam_policy_document" "waf_kms_policy" {
+  #checkov:skip=CKV_AWS_111: "Root account delegation requires kms:* actions"
+  #checkov:skip=CKV_AWS_109: "Root account policy manages permissions for the key itself"
+  #checkov:skip=CKV_AWS_356: "KMS Key policies require resource * by design"
+
   statement {
     sid    = "EnableRootPermissions"
     effect = "Allow"
@@ -47,7 +54,7 @@ data "aws_iam_policy_document" "waf_kms_policy" {
   }
 }
 
-# --- KMS Key with Policy  ---
+# --- KMS Key with Policy (CKV_AWS_158, CKV2_AWS_64) ---
 resource "aws_kms_key" "waf_log_key" {
   description             = "KMS Key for WAF CloudWatch Log Group"
   deletion_window_in_days = 7
@@ -61,7 +68,7 @@ resource "aws_kms_key" "waf_log_key" {
   }
 }
 
-# --- CloudWatch Log Group with 365 Days Retention  ---
+# --- CloudWatch Log Group with 365 Days Retention (CKV_AWS_338) ---
 resource "aws_cloudwatch_log_group" "waf_log_group" {
   name              = "aws-waf-logs-${var.environment}-alb"
   retention_in_days = 365
@@ -165,7 +172,7 @@ resource "aws_wafv2_web_acl" "main" {
   }
 }
 
-# --- WAF Logging Configuration ---
+# --- WAF Logging Configuration (CKV2_AWS_31) ---
 resource "aws_wafv2_web_acl_logging_configuration" "main" {
   log_destination_configs = [aws_cloudwatch_log_group.waf_log_group.arn]
   resource_arn            = aws_wafv2_web_acl.main.arn
