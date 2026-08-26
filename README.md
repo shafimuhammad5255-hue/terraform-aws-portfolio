@@ -58,27 +58,30 @@ Production-grade, modular AWS infrastructure built with **Terraform**, enforcing
 
 ## 🔄 DevSecOps Pipeline Flow
 
+```text
 Local Development
-│
-├── [Pre-commit Hooks] ── (Gitleaks, TFLint, Terraform fmt)
-│
+  │
+  ├── [Pre-commit Hooks] ── (Gitleaks, TFLint, Terraform fmt)
+  │
 Git Push to Main
-│
-└── [GitHub Actions CI/CD]
-├── Checkov IaC Security Audit
-├── Trivy Container Scan
-├── Bandit SAST Scan
-└── Gitleaks Secrets Audit
+  │
+  └── [GitHub Actions CI/CD]
+        ├── Checkov IaC Security Audit
+        ├── Trivy Container Scan
+        ├── Bandit SAST Scan
+        └── Gitleaks Secrets Audit
+        
+```
 
----
+
 
 ## 🚀 Local Setup & Verification
 
 1. **Clone the repository:**
-   ```bash
-   git clone (https://github.com/shafimuhammad5255-hue/terraform-aws-portfolio.git)
-   cd terraform-aws-portfolio
-   ```
+  ```bash
+  git clone https://github.com/shafimuhammad5255-hue/terraform-aws-portfolio.git
+  cd terraform-aws-portfolio
+  ```
 2. Initialize Pre-commit Hooks:
 
   ```bash
@@ -90,3 +93,4 @@ Git Push to Main
   ```bash
   pre-commit run --all-files
   ```
+---
