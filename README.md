@@ -1,128 +1,92 @@
-#  Enterprise AWS Infrastructure as Code (IaC) & DevSecOps Portfolio
+# Enterprise AWS Infrastructure as Code (IaC) & DevSecOps Portfolio
 
-[![DevSecOps IaC and Container Security Audit](https://github.com/shafimuhammad5255-hue/terraform-aws-portfolio/actions/workflows/devsecops.yml/badge.svg?branch=main)](https://github.com/shafimuhammad5255-hue/terraform-aws-portfolio/actions/workflows/devsecops.yml)
+![DevSecOps IaC and Container Security Audit](https://github.com/shafimuhammad5255-hue/terraform-aws-portfolio/actions/workflows/devsecops.yml/badge.svg)
 
-This repository contains production-grade **Terraform** infrastructure modules for AWS, hardened and audited against industry security standards using **Checkov** to achieve a **0 Failed Checks** benchmark.
+Production-grade, modular AWS infrastructure built with **Terraform**, enforcing strict **Shift-Left Security** principles. Every module is hardened against industry benchmarks (CIS AWS Foundations, OWASP Top 10) and validated through automated multi-stage CI/CD security pipelines.
 
+---
 
+## 🛡️ Security & Compliance Architecture
 
-##  Security & Compliance Status
+| Layer | Tools / Technologies | Enforced Security Controls 
 
-- **Static Analysis Tool:** [Checkov](https://www.checkov.io/)
-- **Total Security Checks:** 200+
-- **Failed Checks:** **0** (100% Compliant)
-- **Frameworks Covered:** CIS AWS Benchmarks, AWS Foundational Security Best Practices
-- **Container Vulnerability Scanner:** Trivy (Aqua Security)
-- **Container Hardening:** Alpine-based lightweight base image, non-root user execution, 0 High/Critical CVEs.
+| **Static Analysis (IaC)** : Checkov, TFLint | 0 Failed Checks benchmark, automated policy-as-code enforcement. 
 
+| **Secret Detection** : Gitleaks, TruffleHog | Pre-commit and CI blocking of hardcoded credentials/tokens. 
 
+| **Container Security** : Trivy, Dockerfile Best Practices | Non-root runtime, minimal base images, continuous CVE vulnerability scans. 
 
-##  Key Modules & Architecture
+| **Code Analysis (SAST)** : Bandit | Python AST security linting for automation & Lambda functions. 
 
-### 1. `1-ec2-basics`
-- Provisioned AWS EC2 instances adhering to secure baseline specs.
-- Enforced **IMDSv2** (Instance Metadata Service v2) to prevent SSRF credential theft.
-- Enabled root volume encryption with AWS KMS.
+| **Authentication** : GitHub Actions OIDC | Keyless AWS authentication eliminating long-lived IAM access keys. 
 
-### 2. `2-s3-dynamodb-remote-backend`
-- Secure Terraform Remote State backend using S3 and DynamoDB for state locking.
-- Configured Server-Side Encryption (SSE-KMS), Access Logging, and Versioning.
+---
 
-### 3. `3-custom-modules`
-- Reusable Terraform modules for modular compute deployment.
-- Enforced strict input validation and explicit resource tagging.
+## 📂 Architecture & Hardened Modules
 
-### 4. `4-registry-vpc`
-- Multi-AZ VPC deployment via official Terraform Registry modules.
-- **Supply Chain Security:** Module source pinned to exact **Git Commit Hashes (SHA)** instead of floating tags/versions to guarantee immutability.
+| Module Directory | Core Security Implementations
 
-### 5. `5-Workspace-demo`
-- Multi-environment setup (`dev`, `prod`) using Terraform Workspaces.
-- Hardened EC2 instances with **Detailed Monitoring**, **EBS Optimization**, and attached IAM Instance Profiles.
+| **`1-ec2-basics`** : Custom VPC segmentation, IMDSv2 mandatory tokens, default security group egress lockdown. 
 
-### 6. `6-dynamic-blocks-loops`
-- Scalable resource iteration using Terraform `for_each` and dynamic blocks.
-- Centralized S3 bucket creation with standalone Public Access Blocks and Logging configurations.
+| **`2-s3-dynamodb-remote-backend`** : Secure state locking, S3 bucket public access block, versioning, SSE-KMS encryption. 
 
-### 7. `7-aws-cloudtrail-kms`
-- Enterprise-wide logging and auditing setup via AWS CloudTrail.
-- **Custom KMS Key Policies:** Eliminated wildcard principals (`*`) to ensure strict Principle of Least Privilege.
-- Integrated CloudTrail logs with **CloudWatch Log Groups** and **SNS Topics** for real-time security alerting.
+| **`3-custom-modules`** : Reusable, isolated EC2 modules adhering to least-privilege networking. 
 
-### 8. `8-container-security` 
-- Hardened Flask microservice containerized with multi-stage/alpine security best practices and audited via Trivy.
+| **`4-registry-vpc`** : Multi-tier network architecture (Public/Private/Database subnets) with VPC Flow Logs. 
 
-### 9. `9-github-OIDC-iam`
-- **Keyless CI/CD Authentication:** Eliminated long-lived static AWS access keys by integrating OpenID Connect (OIDC) with GitHub Actions.
-- **Audited Least Privilege:** Configured IAM trust relationships restricted strictly to the designated repository, branch, and role assumption.
+| **`5-Workspace-demo`** : Multi-environment isolation (Dev/Staging/Prod) using Terraform Workspaces. 
 
-### 10. `10-kubernetes-security-hardening`
-- **Pod Security Standards (PSS):** Hardened deployment enforcing non-root users (`UID 10001`), read-only root filesystems, and dropping all standard Linux capabilities (`ALL`).
-- **Granular RBAC:** Implemented least-privilege `ServiceAccount`, `Role`, and `RoleBinding` scoped strictly to namespace ConfigMaps.
-- **Zero-Trust Microsegmentation:** Enforced `NetworkPolicy` with default-deny ingress/egress, isolating workload traffic exclusively to internal authorized endpoints.
+| **`6-dynamic-blocks-loops`** : Programmatic, repeatable security group rule management minimizing manual configuration drift. 
 
-### 11. `11-GuardDuty-threat-detection`
-- **Intelligent Continuous Threat Detection:** Configured Amazon GuardDuty with comprehensive monitoring across S3 data logs, EKS audit logs, and EBS malware protection.
-- **Event-Driven Incident Response:** Built an automated alerting pipeline using Amazon EventBridge to capture high-severity findings ($\ge 7.0$) and route instant notifications via a KMS-encrypted SNS topic.
+| **`7-aws-cloudtrail-kms`** : Multi-Region CloudTrail audit logging encrypted with Customer Managed Keys (CMK) and Log Validation. 
 
-### 12. `12-ecr-image-scanning`
-- **Immutable Container Artifacts:** Enforced image tag immutability to prevent unauthorized overwrites, tampering, and image hijacking.
-- **Automated CVE Vulnerability Scanning:** Configured continuous scan-on-push policies for newly uploaded container layers.
-- **KMS Envelope Encryption & Lifecycle Management:** Secured registry at rest using customer-managed KMS keys with strictly scoped policies and automated pruning of stale untagged images.
+| **`8-container-security`** : Hardened container runtime, unprivileged user execution, read-only root filesystems. 
 
+| **`9-github-OIDC-iam`** : OpenID Connect federated IAM roles restricted via GitHub repository claim conditions. 
 
-## DevSecOps & Security Hardening Highlights
+| **`10-kubernetes-security-hardening`** : K8s Pod Security Standards, restrictive RBAC policies, and granular NetworkPolicies. 
 
-| Security Control | Implementation Details 
+| **`11-GuardDuty-threat-detection`** : Intelligent continuous threat detection for VPC Flow Logs, DNS logs, and S3 Data Events. 
 
-| **Authentication & CI/CD (OIDC)** : Keyless GitHub Actions integration via OpenID Connect (OIDC); eliminated long-lived static AWS access keys. 
+| **`12-ecr-image-scanning`** : Continuous vulnerability image scanning on push with KMS-encrypted image repositories. 
 
-| **Shift-Left Security** : Local pre-commit hooks configured for early feedback loop (Gitleaks, Bandit, Terraform validate, formatting).
+| **`13-aws-waf-alb-security`** : WAFv2 WebACL with AWS Managed Rules (OWASP Top 10, Bad Inputs) and Anti-DDoS Rate Limiting. 
 
-| **Identity & Access (IAM)** : Removed `*` wildcards from KMS key policies; enforced strict service principals and least privilege.
+| **`14-secrets-manager-rotation`** : Automated secret rotation via KMS-encrypted AWS Secrets Manager and scoped Lambda functions. 
 
-| **Compute (EC2)** : Enforced IMDSv2 (`http_tokens = required`), EBS volume encryption, and attached IAM profiles.
+---
 
-| **Storage (S3)** : Blocked all public access, enabled versioning, KMS encryption, and access logging across all buckets.
+## 🔄 DevSecOps Pipeline Flow
 
-| **Networking (VPC)** : Configured VPC Flow Logs and restricted default Security Group ingress/egress rules.
+Local Development
+│
+├── [Pre-commit Hooks] ── (Gitleaks, TFLint, Terraform fmt)
+│
+Git Push to Main
+│
+└── [GitHub Actions CI/CD]
+├── Checkov IaC Security Audit
+├── Trivy Container Scan
+├── Bandit SAST Scan
+└── Gitleaks Secrets Audit
 
-| **Kubernetes (K8s)** : Enforced non-root execution (`UID 10001`), read-only root FS, dropped Linux capabilities, granular RBAC, and zero-trust NetworkPolicies.
+---
 
-| **Threat Detection** : Automated GuardDuty continuous monitoring with EventBridge and KMS-encrypted SNS alerts for high-severity findings.
+## 🚀 Local Setup & Verification
 
-| **Container Registry (ECR)** : Immutable container tags, automated scan-on-push, customer-managed KMS encryption, and lifecycle pruning.
+1. **Clone the repository:**
+   ```bash
+   git clone (https://github.com/shafimuhammad5255-hue/terraform-aws-portfolio.git)
+   cd terraform-aws-portfolio
+   ```
+2. Initialize Pre-commit Hooks:
 
-| **Supply Chain** : Locked third-party Terraform registry module sources using immutable Git commit SHAs.
+  ```bash
+  pip install pre-commit checkov
+  pre-commit install
+  ```
+3. Run Pre-commit Manually:
 
-### DevSecOps Pipeline & Automated Security Gates (Defense-in-Depth)
-
-The CI/CD pipeline enforces automated shift-left security across 4 critical layers:
-
-1. **IaC & Policy Compliance (Checkov):** Audits Terraform modules, Kubernetes manifests, GitHub Actions workflow permissions (`permissions: read-all`), and Dockerfile CIS standards.
-
-2. **Container Vulnerability Management (Trivy):** Scans Docker images with strict gatekeeping (`exit-code: 1` on HIGH/CRITICAL CVEs). Remediated 71+ legacy vulnerabilities down to 0 using a hardened Alpine base and multi-stage builds.
-
-3. **Static Application Security Testing - SAST (Bandit):** Automatically analyzes Python/Flask source code for security flaws and unsafe function executions.
-
-4. **Secret Scanning (Gitleaks):** Scans commit history and codebase to prevent accidental leaks of AWS credentials, API keys, or private certificates.
-
-## How to Audit & Run Scans Locally
-
-Run these scans locally before pushing changes to remote:
-
-```bash
-# 1. Run All Shift-Left Pre-Commit Hooks
-pre-commit run --all-files
-
-# 2. IaC & Kubernetes Manifest Scan
-checkov -d .
-
-# 3. Secret Scan
-gitleaks detect --source . -v
-
-# 4. Static Python SAST Scan
-bandit -r 
-
-# 5. Container Filesystem Scan
-trivy fs .
+  ```bash
+  pre-commit run --all-files
+  ```
