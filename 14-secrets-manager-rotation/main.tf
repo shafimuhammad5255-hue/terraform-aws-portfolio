@@ -205,19 +205,22 @@ data "archive_file" "lambda_dummy_payload" {
 # ts:skip=CKV_AWS_173 Suppress Lambda environment variables KMS encryption check as none are present
 # ts:skip=CKV_AWS_117 Suppress VPC configuration for rotation template
 # ts:skip=CKV_AWS_50 Suppress X-Ray tracing requirement for simple rotation script
+# ts:skip=CKV_AWS_272 Suppress Code Signing requirement for internal rotation handler
 resource "aws_lambda_function" "rotator" {
   #checkov:skip=CKV_AWS_116: "Dead letter queue is not mandatory for synchronous Secrets Manager rotation triggers"
   #checkov:skip=CKV_AWS_173: "No custom environment variables defined that require KMS encryption"
   #checkov:skip=CKV_AWS_117: "Lambda template runs in secure AWS managed environment"
   #checkov:skip=CKV_AWS_50: "X-ray tracing not required for basic secret rotation lambda"
+  #checkov:skip=CKV_AWS_272: "Code signing is not required for internal automated secret rotator"
 
-  filename         = data.archive_file.lambda_dummy_payload.output_path
-  source_code_hash = data.archive_file.lambda_dummy_payload.output_base64sha256
-  function_name    = "${var.environment}-db-secret-rotator"
-  role             = aws_iam_role.rotation_lambda_role.arn
-  handler          = "lambda_function.lambda_handler"
-  runtime          = "python3.11"
-  timeout          = 30
+  filename                       = data.archive_file.lambda_dummy_payload.output_path
+  source_code_hash               = data.archive_file.lambda_dummy_payload.output_base64sha256
+  function_name                  = "${var.environment}-db-secret-rotator"
+  role                           = aws_iam_role.rotation_lambda_role.arn
+  handler                        = "lambda_function.lambda_handler"
+  runtime                        = "python3.11"
+  timeout                        = 30
+  reserved_concurrent_executions = 5
 
   tags = {
     Environment = var.environment
@@ -228,10 +231,12 @@ resource "aws_lambda_function" "rotator" {
 
 # --- Allow Secrets Manager to Invoke the Lambda Function ---
 resource "aws_lambda_permission" "allow_secretsmanager" {
-  statement_id  = "AllowExecutionFromSecretsManager"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.rotator.function_name
-  principal     = "secretsmanager.amazonaws.com"
+  statement_id   = "AllowExecutionFromSecretsManager"
+  action         = "lambda:InvokeFunction"
+  function_name  = aws_lambda_function.rotator.function_name
+  principal      = "secretsmanager.amazonaws.com"
+  source_account = data.aws_caller_identity.current.account_id
+  source_arn     = aws_secretsmanager_secret.db_secret.arn
 }
 
 # --- Automatic Secret Rotation Schedule ---
