@@ -11,6 +11,9 @@ provider "aws" {
   region = var.aws_region
 }
 
+# AWS അക്കൗണ്ട് ഐഡി എടുക്കാൻ
+data "aws_caller_identity" "current" {}
+
 resource "random_id" "bucket_id" {
   byte_length = 4
 }
@@ -21,6 +24,22 @@ resource "aws_kms_key" "secops_key" {
   description             = "KMS key for SecOps Incident Response resources"
   enable_key_rotation     = true
   deletion_window_in_days = 7
+
+  # CKV2_AWS_64 പരിഹരിക്കാനുള്ള പോളിസി
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "Enable IAM User Permissions"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action   = "kms:*"
+        Resource = "*"
+      }
+    ]
+  })
 }
 
 resource "aws_kms_alias" "secops_key_alias" {
@@ -30,8 +49,30 @@ resource "aws_kms_alias" "secops_key_alias" {
 
 # --- S3 Production Environment ---
 
+# checkov:skip=CKV_AWS_144: Cross-region replication not required for logs in this architecture
+# checkov:skip=CKV2_AWS_62: Event notifications not required for access logs bucket
 resource "aws_s3_bucket" "s3_access_logs" {
   bucket = "secops-access-logs-${random_id.bucket_id.hex}"
+}
+
+# CKV_AWS_21 പരിഹരിക്കാൻ Log Bucket Versioning
+resource "aws_s3_bucket_versioning" "log_bucket_versioning" {
+  bucket = aws_s3_bucket.s3_access_logs.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# CKV2_AWS_61 പരിഹരിക്കാൻ Log Bucket Lifecycle
+resource "aws_s3_bucket_lifecycle_configuration" "log_bucket_lifecycle" {
+  bucket = aws_s3_bucket.s3_access_logs.id
+  rule {
+    id     = "log-expiration"
+    status = "Enabled"
+    expiration {
+      days = 90
+    }
+  }
 }
 
 resource "aws_s3_bucket_public_access_block" "log_bucket_pab" {
@@ -57,8 +98,21 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "log_bucket_enc" {
 # checkov:skip=CKV_AWS_54: Skip PAB block_public_policy for demo to test auto-remediation
 # checkov:skip=CKV_AWS_55: Skip PAB ignore_public_acls for demo to test auto-remediation
 # checkov:skip=CKV_AWS_56: Skip PAB restrict_public_buckets for demo to test auto-remediation
+# checkov:skip=CKV2_AWS_6: Skip general PAB check for demo
 resource "aws_s3_bucket" "demo_security_bucket" {
   bucket = "secops-demo-bucket-${random_id.bucket_id.hex}"
+}
+
+# CKV2_AWS_61 പരിഹരിക്കാൻ Demo Bucket Lifecycle
+resource "aws_s3_bucket_lifecycle_configuration" "demo_bucket_lifecycle" {
+  bucket = aws_s3_bucket.demo_security_bucket.id
+  rule {
+    id     = "demo-expiration"
+    status = "Enabled"
+    expiration {
+      days = 30
+    }
+  }
 }
 
 resource "aws_s3_bucket_versioning" "demo_bucket_versioning" {
