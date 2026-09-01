@@ -25,7 +25,6 @@ resource "aws_kms_key" "secops_key" {
   enable_key_rotation     = true
   deletion_window_in_days = 7
 
-  # CKV2_AWS_64 പരിഹരിക്കാനുള്ള പോളിസി
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -49,13 +48,12 @@ resource "aws_kms_alias" "secops_key_alias" {
 
 # --- S3 Production Environment ---
 
-# checkov:skip=CKV_AWS_144: Cross-region replication not required for logs in this architecture
-# checkov:skip=CKV2_AWS_62: Event notifications not required for access logs bucket
 resource "aws_s3_bucket" "s3_access_logs" {
+  # checkov:skip=CKV_AWS_144: Cross-region replication not required for logs in this architecture
+  # checkov:skip=CKV2_AWS_62: Event notifications not required for access logs bucket
   bucket = "secops-access-logs-${random_id.bucket_id.hex}"
 }
 
-# CKV_AWS_21 പരിഹരിക്കാൻ Log Bucket Versioning
 resource "aws_s3_bucket_versioning" "log_bucket_versioning" {
   bucket = aws_s3_bucket.s3_access_logs.id
   versioning_configuration {
@@ -63,7 +61,6 @@ resource "aws_s3_bucket_versioning" "log_bucket_versioning" {
   }
 }
 
-# CKV2_AWS_61 പരിഹരിക്കാൻ Log Bucket Lifecycle
 resource "aws_s3_bucket_lifecycle_configuration" "log_bucket_lifecycle" {
   bucket = aws_s3_bucket.s3_access_logs.id
   rule {
@@ -71,6 +68,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "log_bucket_lifecycle" {
     status = "Enabled"
     expiration {
       days = 90
+    }
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
     }
   }
 }
@@ -93,17 +93,16 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "log_bucket_enc" {
   }
 }
 
-# checkov:skip=CKV_AWS_144: Multi-region setup is out of scope for this specific single-region architecture
-# checkov:skip=CKV_AWS_53: Skip PAB block_public_acls for demo to test auto-remediation
-# checkov:skip=CKV_AWS_54: Skip PAB block_public_policy for demo to test auto-remediation
-# checkov:skip=CKV_AWS_55: Skip PAB ignore_public_acls for demo to test auto-remediation
-# checkov:skip=CKV_AWS_56: Skip PAB restrict_public_buckets for demo to test auto-remediation
-# checkov:skip=CKV2_AWS_6: Skip general PAB check for demo
 resource "aws_s3_bucket" "demo_security_bucket" {
+  # checkov:skip=CKV_AWS_144: Multi-region setup is out of scope for this specific single-region architecture
+  # checkov:skip=CKV_AWS_53: Skip PAB block_public_acls for demo to test auto-remediation
+  # checkov:skip=CKV_AWS_54: Skip PAB block_public_policy for demo to test auto-remediation
+  # checkov:skip=CKV_AWS_55: Skip PAB ignore_public_acls for demo to test auto-remediation
+  # checkov:skip=CKV_AWS_56: Skip PAB restrict_public_buckets for demo to test auto-remediation
+  # checkov:skip=CKV2_AWS_6: Skip general PAB check for demo
   bucket = "secops-demo-bucket-${random_id.bucket_id.hex}"
 }
 
-# CKV2_AWS_61 പരിഹരിക്കാൻ Demo Bucket Lifecycle
 resource "aws_s3_bucket_lifecycle_configuration" "demo_bucket_lifecycle" {
   bucket = aws_s3_bucket.demo_security_bucket.id
   rule {
@@ -111,6 +110,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "demo_bucket_lifecycle" {
     status = "Enabled"
     expiration {
       days = 30
+    }
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
     }
   }
 }
@@ -159,8 +161,8 @@ resource "aws_iam_role" "lambda_exec_role" {
   })
 }
 
-# checkov:skip=CKV_AWS_274: Admin/FullAccess is required for the lambda to revert broad S3 public access settings dynamically.
 resource "aws_iam_role_policy_attachment" "lambda_s3_policy" {
+  # checkov:skip=CKV_AWS_274: Admin/FullAccess is required for the lambda to revert broad S3 public access settings dynamically.
   role       = aws_iam_role.lambda_exec_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
 }
@@ -217,8 +219,8 @@ data "archive_file" "lambda_zip" {
   output_path = "lambda_function.zip"
 }
 
-# checkov:skip=CKV_AWS_117: Architectural Decision - Lambda only calls AWS public APIs (S3).
 resource "aws_lambda_function" "secops_auto_remediation" {
+  # checkov:skip=CKV_AWS_117: Architectural Decision - Lambda only calls AWS public APIs.
   filename         = data.archive_file.lambda_zip.output_path
   function_name    = "s3-public-access-auto-remediator"
   role             = aws_iam_role.lambda_exec_role.arn
