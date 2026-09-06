@@ -9,7 +9,7 @@ Production-grade, modular AWS infrastructure built with **Terraform**, enforcing
 ## 🛡️ Security & Compliance Architecture
 
 | Layer | Tools / Technologies | Enforced Security Controls 
-
+| :--- | :--- | :--- |
 | **Static Analysis (IaC)** : Checkov, TFLint | 0 Failed Checks benchmark, automated policy-as-code enforcement. 
 
 | **Secret Detection** : Gitleaks, TruffleHog | Pre-commit and CI blocking of hardcoded credentials/tokens. 
@@ -23,7 +23,7 @@ Production-grade, modular AWS infrastructure built with **Terraform**, enforcing
 ---
 
 ## 📂 Architecture & Hardened Modules
-
+| :--- | :--- |
 | Module Directory | Core Security Implementations
 
 | **`1-ec2-basics`** : Custom VPC segmentation, IMDSv2 mandatory tokens, default security group egress lockdown. 
@@ -53,6 +53,8 @@ Production-grade, modular AWS infrastructure built with **Terraform**, enforcing
 | **`13-aws-waf-alb-security`** : WAFv2 WebACL with AWS Managed Rules (OWASP Top 10, Bad Inputs) and Anti-DDoS Rate Limiting. 
 
 | **`14-secrets-manager-rotation`** : Automated secret rotation via KMS-encrypted AWS Secrets Manager and scoped Lambda functions. 
+
+| **15-automated-incident-response** | Automated incident remediation using AWS EventBridge and Python Lambda functions. |
 
 ---
 
