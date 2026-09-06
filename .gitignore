@@ -20,3 +20,6 @@ override.tf.json
 # CLI local configuration records
 .terraformrc
 terraform.rc
+
+#to avoid committing zip files
+*.zip
