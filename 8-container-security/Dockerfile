@@ -1,5 +1,6 @@
 # Stage 1: Build stage
 FROM python:3.11-alpine AS builder
+RUN apk update && apk upgrade --no-cache
 
 WORKDIR /app
 
@@ -8,9 +9,9 @@ RUN pip install --no-cache-dir --prefix=/install flask>=3.0.0
 
 # Stage 2: Final minimal runtime stage
 FROM python:3.11-alpine
+RUN apk update && apk upgrade --no-cache
 
 WORKDIR /app
-
 # Copy only the installed dependencies from builder
 COPY --from=builder /install /usr/local
 
