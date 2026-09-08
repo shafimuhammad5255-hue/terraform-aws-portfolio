@@ -231,9 +231,9 @@ resource "aws_lambda_function" "secops_auto_remediation" {
   runtime          = "python3.12"
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 
-  # reserved_concurrent_executions = 50
+  reserved_concurrent_executions = 50
 
-  # code_signing_config_arn = aws_lambda_code_signing_config.lambda_signing_config.arn 
+  code_signing_config_arn = aws_lambda_code_signing_config.lambda_signing_config.arn 
 
   tracing_config {
     mode = "Active"
