@@ -64,6 +64,7 @@ resource "aws_s3_bucket_versioning" "log_bucket_versioning" {
 resource "aws_s3_bucket_lifecycle_configuration" "log_bucket_lifecycle" {
   bucket = aws_s3_bucket.s3_access_logs.id
   rule {
+    filter {}
     id     = "log-expiration"
     status = "Enabled"
     expiration {
@@ -106,6 +107,7 @@ resource "aws_s3_bucket" "demo_security_bucket" {
 resource "aws_s3_bucket_lifecycle_configuration" "demo_bucket_lifecycle" {
   bucket = aws_s3_bucket.demo_security_bucket.id
   rule {
+    filter {}
     id     = "demo-expiration"
     status = "Enabled"
     expiration {
@@ -221,6 +223,7 @@ data "archive_file" "lambda_zip" {
 
 resource "aws_lambda_function" "secops_auto_remediation" {
   # checkov:skip=CKV_AWS_117: Architectural Decision - Lambda only calls AWS public APIs.
+  
   filename         = data.archive_file.lambda_zip.output_path
   function_name    = "s3-public-access-auto-remediator"
   role             = aws_iam_role.lambda_exec_role.arn
@@ -228,9 +231,9 @@ resource "aws_lambda_function" "secops_auto_remediation" {
   runtime          = "python3.12"
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 
-  reserved_concurrent_executions = 50
+  # reserved_concurrent_executions = 50
 
-  code_signing_config_arn = aws_lambda_code_signing_config.lambda_signing_config.arn 
+  # code_signing_config_arn = aws_lambda_code_signing_config.lambda_signing_config.arn 
 
   tracing_config {
     mode = "Active"
