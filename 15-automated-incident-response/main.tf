@@ -162,6 +162,10 @@ resource "aws_iam_role" "lambda_exec_role" {
     }]
   })
 }
+resource "aws_iam_role_policy_attachment" "lambda_logs" {
+  role       = aws_iam_role.lambda_exec_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
 
 resource "aws_iam_role_policy_attachment" "lambda_s3_policy" {
   # checkov:skip=CKV_AWS_274: Admin/FullAccess is required for the lambda to revert broad S3 public access settings dynamically.
